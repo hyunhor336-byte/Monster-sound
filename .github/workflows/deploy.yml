@@ -1,0 +1,35 @@
+name: Publish a Release
+
+on:
+  push:
+    branches: [main, master]
+    paths: ['index.html']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check index.html
+        run: |
+          if [ ! -f index.html ]; then
+            echo "index.html was not found in the repository root"; exit 1
+          fi
+
+      - name: Create the Release with index.html attached
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v${{ github.run_number }}"
+          cp index.html pool-rooms.html
+          gh release create "$TAG" index.html pool-rooms.html \
+            --repo "${{ github.repository }}" \
+            --title "Pool Rooms $TAG" \
+            --notes "Floor 2: microphone monster + grab/slam/No Signal death. Download index.html and use it, or play online: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/" \
+            --latest
